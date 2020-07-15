@@ -5,7 +5,6 @@ const ChatMessage = require("mineflayer/lib/chat_message")("1.15.2")
 
 async function connect(loginOpts) {
     const bot = mineflayer.createBot(loginOpts)
-    const fs = require("fs")
     bot.loadPlugin(pathfinder)
     const FastBreakingMaterial = [
         1, 4, 6, 2, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 28
@@ -20,7 +19,6 @@ async function connect(loginOpts) {
         output: process.stdout,
         terminal: false
     });
-    let serverRestart = false
 // config
     let blockStart = false
     let status = {
@@ -28,6 +26,7 @@ async function connect(loginOpts) {
         lava: true,
         lastBlock: null,
         owner: "patyhank",
+        // change this ↑
         blockList: [],
         menustatus: ""
     }
@@ -44,10 +43,8 @@ async function connect(loginOpts) {
         if (message.toString() === "[S] <系統> 讀取統計資料成功.") {
             setTimeout(function () {
                 fly_toggle(false)
-                bot.creative.startFlying()
                 bot.creative.flyTo(bot.entity.position.offset(0, 0.01, 0))
             }, 3000)
-
         }
         let notperm = /\[S\] <領地> 您沒有 ([\s\S]+) 的許可在這裡建造\./g
         notperm = notperm.exec(message.toString())
@@ -75,67 +72,12 @@ async function connect(loginOpts) {
                             console.log(args[0])
                             await digChunk(args[0], "dig")
                             break
-                        case "fly":
-                            if (args.length === 1) {
-                                await fly_toggle((args[0] === 'true'))
-                                bot.chat(`/r ${(args[0] === 'true')}`)
-                            } else {
-                                if (args.length === 2) {
-                                    await fly_toggle((args[0] === 'true'), (args[1] === 'true'))
-                                    bot.chat(`/r ${(args[0] === 'true')} ${(args[1] === 'true')} `)
-                                }
-                            }
-                            bot.creative.startFlying()
-                            break
                     }
                 } else {
                     switch (msgresult[2]) {
-                        case "openShulkerBox":
-                            await openShulkerBox()
-                            break
-                        case "recipe_bow":
-                            await recipe_bow()
-                            break
-                        case "bedrock":
-                            await breakbedrock()
-                            break
-                        case "fly":
-                            await fly_toggle()
-                            break
                         case "digchunk":
                             excludeBlock = []
                             await digChunk()
-                            break
-                        case "ahahahah":
-
-                        async function rtx() {
-                            await bot.chat("/rtx")
-                            await bot.chat("/msi")
-                            await bot.chat("/zotac")
-                            await bot.chat("/aorus")
-                            await bot.chat("/rog")
-                        }
-
-                            await rtx()
-                            setInterval(rtx, 15000)
-                            break
-                        case "throwall":
-                            for (let i = 9; i < 45; i++) {
-                                await bot._client.write("window_click", {
-                                    windowId: 0,
-                                    slot: i,
-                                    mouseButton: 1,
-                                    action: 1,
-                                    mode: 4,
-                                    item: 0x00
-                                })
-                            }
-                            break
-                        case "flytime":
-                            const header = bot.tablist.header
-                            const flytime = header["text"].split("\n")[5].toString().replace(/§([a-f0-9k-or])/g, "").substr(9).split(" (")[0]
-                            console.log(flytime)
-                            await bot.chat(`/m ${msgresult[1].toLowerCase()} ${flytime} 飛行狀態: ${!bot.player.entity.onGround}`)
                             break
                     }
                 }
@@ -204,11 +146,6 @@ async function connect(loginOpts) {
         }, 3000)
 
     })
-    const box_list = {
-        craft_table: vec3(317, 7, -274),
-        string: vec3(318, 8, -275),
-        stick: vec3(318, 8, -273),
-    }
 
     async function openShulkerBox() {
         const block = bot.findBlock({
@@ -232,90 +169,6 @@ async function connect(loginOpts) {
             })
         })
     }
-
-    async function recipe_bow() {
-        const table = await bot.findBlock({
-            point: box_list.craft_table,
-            matching: 149
-        })
-        const stick = await bot.findBlock({
-            point: box_list.stick,
-            matching: 501
-        })
-        const string = await bot.findBlock({
-            point: box_list.string,
-            matching: 501
-        })
-        await bot.openChest(stick)
-        bot.once("windowOpen", async function (window) {
-            // console.log(window)
-            console.log("open")
-            for (let item of window.slots) {
-                if (item) {
-                    if (item.type === 545) {
-                        await bot._client.write("window_click", {
-                            windowId: window.id,
-                            slot: item.slot,
-                            mouseButton: 0,
-                            action: 1,
-                            mode: 1,
-                            item: 0x00
-                        })
-
-                        break
-                    }
-                }
-            }
-            await bot._client.write("close_window", {
-                windowId: window.id
-            })
-            await bot.openChest(string)
-            // bot.removeListener("windowOpen", this)
-            bot.once("windowOpen", async function (window) {
-                // console.log(window)
-                console.log("open 2")
-                for (let item of window.slots) {
-                    if (item) {
-                        console.log(item.type)
-                        if (item.type === 552) {
-                            console.log("click")
-                            await bot._client.write("window_click", {
-                                windowId: window.id,
-                                slot: item.slot,
-                                mouseButton: 0,
-                                action: 1,
-                                mode: 1,
-                                item: 0x00
-                            })
-
-                            break
-                        }
-                    }
-                }
-                await bot._client.write("close_window", {
-                    windowId: window.id
-                })
-                // bot.removeListener("windowOpen", this)
-                if (table) {
-                    console.log("recipesFor")
-                    const bow = bot.recipesFor(525, null, null, table)[0]
-                    // console.log(bow)
-                    await bot.craft(bow, 3, table, async function (error) {
-                        if (error) {
-                            console.log(error)
-                        }
-                    })
-                }
-            })
-
-        })
-
-    }
-
-    bot.on("end", async function () {
-        await connect()
-    })
-
     function fly_toggle(fly, leak_fly) {
         let flag;
         if (leak_fly === undefined || leak_fly === null) {
