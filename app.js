@@ -255,7 +255,7 @@ async function connect(loginOpts) {
         const breakList = (value) => {
             return (value.type !== 0 && value.type !== 617 && value.type !== 182 && !excludeBlock.includes(value.type))
         }
-        if (!serverRestart || serverRestart) {
+        if (true) {
             const fly = status.blockList[0]
             let block = bot.findBlock({
                 point: fly,
@@ -347,7 +347,6 @@ async function connect(loginOpts) {
                             })
                         })
                     }
-                    console.log(status.lastBlock)
                     await normal()
                     async function normal() {
                         if (block.type === 0 || block.type === 617 || block.type === 26 || block.type === 27 || (block.material === "plant" && block.boundingBox === "empty")) {
